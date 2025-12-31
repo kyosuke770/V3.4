@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Instant English</title>
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 16px;
+      background: #f5f5f5;
+    }
+
+    h1 {
+      font-size: 18px;
+      margin-bottom: 12px;
+    }
+
+    /* ===== Progress (Block) ===== */
+    #progress {
+      margin-bottom: 12px;
+    }
+
+    #progressText {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    /* ===== Daily ===== */
+    #daily {
+      margin-bottom: 12px;
+    }
+
+    #dailyText {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    /* ===== Blocks ===== */
+    #blocks {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      margin-bottom: 12px;
+    }
+
+    #blocks button {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: none;
+      background: #ddd;
+      white-space: nowrap;
+    }
+
+    /* ===== Card ===== */
+    #card {
+      background: #fff;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 16px;
+    }
+
+    #jp {
+      font-size: 18px;
+      margin-bottom: 12px;
+    }
+
+    #en {
+      font-size: 20px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    /* ===== Buttons ===== */
+    .buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    button {
+      flex: 1;
+      padding: 12px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: #007aff;
+      color: white;
+    }
+
+    button.secondary {
+      background: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Instant English</h1>
+
+  <!-- ブロック進捗（V3.1） -->
+  <div id="progress">
+    <div id="progressText">進捗: 0 / 0</div>
+    <div style="background:#ddd;height:8px;border-radius:4px;">
+      <div id="progressBar"
+           style="height:8px;width:0%;background:#007aff;border-radius:4px;"></div>
+    </div>
+  </div>
+
+  <!-- 今日のノルマ（V3.2） -->
+  <div id="daily">
+    <div id="dailyText">今日: 0 / 10</div>
+    <div style="background:#ddd;height:8px;border-radius:4px;">
+      <div id="dailyBar"
+           style="height:8px;width:0%;background:#34c759;border-radius:4px;"></div>
+    </div>
+  </div>
+
+  <!-- ブロック選択 -->
+  <div id="blocks"></div>
+
+  <!-- カード -->
+  <div id="card">
+    <div id="jp">読み込み中…</div>
+    <div id="en">タップして答え</div>
+  </div>
+
+  <!-- ナビゲーション -->
+  <div class="buttons">
+    <button id="next">次へ</button>
+    <button id="videoOrder" class="secondary">動画順</button>
+  </div>
+<!-- NOTE / 解説 -->
+<div id="noteBox" style="
+  background:#fff;
+  padding:14px;
+  border-radius:10px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.08);
+  margin-bottom:12px;
+  font-size:14px;
+  color:#555;
+">
+  <div id="noteText">解説がここに表示されます</div>
+</div>
+
+  <!-- SRS -->
+  <div class="buttons">
+    <button id="again" class="secondary">AGAIN</button>
+    <button id="good">GOOD</button>
+  </div>
+
+  <!-- 復習 -->
+  <div class="buttons">
+    <button id="review" class="secondary">復習（Due）</button>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
