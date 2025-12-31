@@ -51,7 +51,8 @@ function ensureDaily() {
 let cards = [];
 let cardsByMode = [];
 let index = 0;
-let revealed = false;
+let revealed = false;   // 英語（答え）表示
+let showNote = false;   // NOTE表示（答えを見た後だけ）
 let currentAnswer = "";
 
 /*************************************************
@@ -71,7 +72,6 @@ const noteEl = document.getElementById("noteText");
 
 /*************************************************
  * CSV Loader
- *
  * CSV header:
  * no,jp,en,slots,video,lv,note
  *************************************************/
@@ -83,6 +83,7 @@ async function loadCSV() {
   cardsByMode = getCardsByBlock(1);
   index = 0;
   revealed = false;
+  showNote = false;
 
   renderBlockButtons();
   render();
@@ -101,7 +102,7 @@ function parseCSV(text) {
     const slotsRaw = cols[3] || "";
     const video = cols[4] || "";
     const lv = Number(cols[5] || "1");
-    const note = cols[6] || ""; // ★追加（V3.4）
+    const note = cols[6] || "";
 
     let slots = null;
     if (slotsRaw) {
@@ -130,7 +131,6 @@ function splitCSV(line) {
   }
   result.push(cur);
 
-  // 前後の " を外す
   return result.map(s => s.replace(/^"|"$/g, ""));
 }
 
@@ -160,7 +160,6 @@ function getBlockProgress(blockIndex) {
   const blockCards = getCardsByBlock(blockIndex);
   const total = blockCards.length;
 
-  // interval>0 を「GOOD済み」とみなす
   const learned = blockCards.filter(c => {
     const s = srs[c.no];
     return s && s.interval > 0;
@@ -232,27 +231,30 @@ function renderBlockButtons() {
 /*************************************************
  * Mode starters
  *************************************************/
+function resetCardView() {
+  revealed = false;
+  showNote = false;
+}
+
 function startBlock(blockIndex) {
   const list = getCardsByBlock(blockIndex);
   if (!list.length) return;
 
   cardsByMode = list;
   index = 0;
-  revealed = false;
+  resetCardView();
   render();
 }
 
 function startVideoOrder() {
   cardsByMode = [...cards].sort((a, b) => a.no - b.no);
   index = 0;
-  revealed = false;
+  resetCardView();
   render();
 }
 
 function startReviewDue() {
   const t = todayDay();
-
-  // 未登録は「今日Due」扱いにしない（復習が爆発するので）
   const due = cards.filter(c => (srs[c.no]?.due ?? Infinity) <= t);
 
   if (!due.length) {
@@ -262,7 +264,7 @@ function startReviewDue() {
 
   cardsByMode = due.sort((a, b) => a.no - b.no);
   index = 0;
-  revealed = false;
+  resetCardView();
   render();
 }
 
@@ -277,7 +279,11 @@ function pickSlot(card) {
 
 function renderNote(card) {
   if (!noteEl) return;
-  noteEl.textContent = card.note ? `💡 ${card.note}` : "";
+  if (showNote && card.note) {
+    noteEl.textContent = `💡 ${card.note}`;
+  } else {
+    noteEl.textContent = "";
+  }
 }
 
 function render() {
@@ -298,7 +304,7 @@ function render() {
     enEl.textContent = revealed ? currentAnswer : "タップして答え";
   }
 
-  renderNote(card);     // ★追加（V3.4）
+  renderNote(card);
   renderProgress();
   renderDaily();
 }
@@ -316,6 +322,13 @@ function nextIntervalGood(prev) {
   return Math.min(120, Math.round(prev * 2));
 }
 
+function goNext() {
+  if (!cardsByMode.length) return;
+  index = (index + 1) % cardsByMode.length;
+  resetCardView();
+  render();
+}
+
 function gradeAgain() {
   if (!cardsByMode.length) return;
 
@@ -325,9 +338,7 @@ function gradeAgain() {
   srs[card.no] = { interval: 0, due: t };
   saveSrs();
 
-  index = (index + 1) % cardsByMode.length;
-  revealed = false;
-  render();
+  goNext();
 }
 
 function gradeGood() {
@@ -347,27 +358,34 @@ function gradeGood() {
   daily.goodCount = (daily.goodCount || 0) + 1;
   saveDaily();
 
-  // 進捗％を更新（ブロックボタンの表示も更新）
+  // ブロック％更新
   renderBlockButtons();
 
-  index = (index + 1) % cardsByMode.length;
-  revealed = false;
-  render();
+  goNext();
 }
 
 /*************************************************
  * Events
  *************************************************/
 cardEl.addEventListener("click", () => {
+  if (!cardsByMode.length) return;
+
+  // 表示切り替え
   revealed = !revealed;
-  enEl.textContent = revealed ? currentAnswer : "タップして答え";
+
+  if (revealed) {
+    showNote = true;         // ★答えを見たらNOTE解放
+    enEl.textContent = currentAnswer;
+  } else {
+    showNote = false;        // 戻したらNOTEも隠す
+    enEl.textContent = "タップして答え";
+  }
+
+  renderNote(cardsByMode[index]);
 });
 
 nextBtn.addEventListener("click", () => {
-  if (!cardsByMode.length) return;
-  index = (index + 1) % cardsByMode.length;
-  revealed = false;
-  render();
+  goNext();
 });
 
 videoBtn?.addEventListener("click", startVideoOrder);
